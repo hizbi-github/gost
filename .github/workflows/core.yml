@@ -1,0 +1,42 @@
+#on: 
+#  push:
+#    branches:
+#      - "prod"
+#    paths:
+#      - "core/**"
+#      #- "lib/**"
+
+#jobs:
+#  core:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: "Pull latest changes at the GitHub runner"
+#        uses: actions/checkout@v4
+
+#      - name: "Login to DockerHub"
+#        uses: docker/login-action@v3
+#        with:
+#          username: ${{ secrets.DOCKERHUB_USERNAME }}
+#          password: ${{ secrets.DOCKERHUB_SECRET_TOKEN }}
+        
+#      - name: "Build the core-api Docker image and push to DockerHub"
+#        uses: docker/build-push-action@v6
+#        with:
+#          push: true
+#          tags: ibzih/project-initials-core:latest
+#          context: ${{ github.workspace }}/
+#          file: ${{ github.workspace }}/core/Dockerfile
+#          network: host
+
+#      - name: "Pull the latest core-api Docker image at EC2 instance and start the Docker container"
+#        uses: appleboy/ssh-action@v1.0.3
+#        with:
+#          host: ${{ secrets.SSH_HOST_DEPLOYEMENT_INSTANCE }}
+#          username: ${{ secrets.SSH_USER }}
+#          key: ${{ secrets.SSH_PRIVATE_KEY }}
+#          port: ${{ secrets.SSH_PORT }}
+#          script: | 
+#            cd /root/monaco-news/ && docker ps && docker image ls -a
+#            cd /root/monaco-news/ && docker compose rm -fsv pi-core
+#            cd /root/monaco-news/ && docker image rm ibzih/pi-core
+#            cd /root/monaco-news/ && docker compose up -d pi-core

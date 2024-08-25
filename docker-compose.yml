@@ -1,0 +1,14 @@
+services:
+  project-initials-core:
+    image: ibzih/project-initials-core:latest
+    pull_policy: always
+    container_name: project-initials-core
+    env_file:
+      - path: ./.env
+        required: false
+    #build:
+      #context: ./core
+      #dockerfile: ./core/Dockerfile
+      #network: host
+    network_mode: host
+    restart: always
