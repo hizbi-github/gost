@@ -19,12 +19,25 @@ import (
 //- https://news.mc/feed/
 //- https://www.monaco-tribune.com/en/category/news/feed/
 
-func StartCronJob(database *mongo.Database) {
+type Scraper struct {
+	Interval   int64
+	RssUrl     string
+	WebsiteUrl string
+	Database   *mongo.Database
+}
+
+func NewScraper(scraperInput Scraper) *Scraper {
+	//Now we can manage some default values here...
+	scraper := scraperInput
+	return &scraper
+}
+
+func (s Scraper) StartCronJob() {
 	ticker := time.NewTicker(20 * time.Second)
 
 	for {
 		<-ticker.C
-		err := someJob(database)
+		err := s.someJob()
 		if err != nil {
 			logrus.Errorf("some cron job error: %+v", err)
 			continue
@@ -32,7 +45,7 @@ func StartCronJob(database *mongo.Database) {
 	}
 }
 
-func someJob(database *mongo.Database) error {
+func (s Scraper) someJob() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
@@ -42,7 +55,7 @@ func someJob(database *mongo.Database) error {
 	}
 
 	for _, item := range feed.Items {
-		if moduleRepo.Exists(ctx, database, item.GUID) {
+		if moduleRepo.Exists(ctx, s.Database, item.GUID) {
 			continue
 		}
 
@@ -76,7 +89,7 @@ func someJob(database *mongo.Database) error {
 			UpdatedAt: time.Now(),
 		}
 
-		err = moduleRepo.Save(ctx, database, &someMongoDocument)
+		err = moduleRepo.Save(ctx, s.Database, &someMongoDocument)
 		if err != nil {
 			logrus.Errorln(err)
 			continue

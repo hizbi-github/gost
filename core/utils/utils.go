@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -98,6 +99,55 @@ func httpTlsClient() *http.Client {
 	}
 
 	return client
+}
+
+func stringArrayDiff(arrayOne []string, arrayTwo []string) []string {
+	diff := []string{}
+
+	biggerArray := arrayOne
+	smallerArray := arrayTwo
+
+	if len(arrayOne) < len(arrayTwo) {
+		biggerArray = arrayTwo
+		smallerArray = arrayOne
+	}
+
+	for _, bigElement := range biggerArray {
+		elementMatched := false
+
+		for _, smallElement := range smallerArray {
+			if smallElement == bigElement {
+				elementMatched = true
+			}
+		}
+
+		if !elementMatched {
+			diff = append(diff, bigElement)
+		}
+	}
+
+	return diff
+}
+
+func SendSlackNotification(notificationBody string) error {
+	if notificationBody == "" {
+		return errors.New("slack notification body is empty")
+	}
+
+	requestHeaders := http.Header{}
+	requestHeaders.Set("Content-Type", "application/json")
+
+	//_, err := HttpPost(url, requestBody, requestHeaders)
+	_, err := HttpPost(&models.HttpRequest{
+		Url:     os.Getenv("SLACK_CHANNEL_UNIQUE_URL"),
+		Headers: requestHeaders,
+		Body:    []byte(fmt.Sprintf(`{"text":"%s"}`, notificationBody)),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func Trim(untrimmed string) string {

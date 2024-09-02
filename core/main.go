@@ -37,7 +37,14 @@ func main() {
 	e := echo.New()
 	e.GET("/v1/api/someEndpoint", moduleHandler.SomeHandler)
 
-	go moduleUsecase.StartCronJob(database)
+	scraper := moduleUsecase.NewScraper(moduleUsecase.Scraper{
+		Interval:   10,
+		RssUrl:     "",
+		WebsiteUrl: "",
+		Database:   database,
+	})
+
+	go scraper.StartCronJob()
 
 	logrus.Infoln("Starting core service...")
 	logrus.Fatalln(e.Start(hostAndPort))
